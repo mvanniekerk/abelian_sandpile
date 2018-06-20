@@ -1,19 +1,13 @@
-const WIDTH: i32 = 3;
-const HEIGHT: i32 = 3;
-const MAX_GRAINS: u64 = 3;
+const WIDTH: i32 = 40;
+const HEIGHT: i32 = 40;
+const MAX_GRAINS: i64 = 3;
 
-type Map = Vec<Vec<u64>>;
+type Map = Vec<Vec<i64>>;
 
 struct Point(i32, i32);
 
-
-fn make_map() -> Map {
-    let map = vec![
-        vec![3, 3, 3],
-        vec![3, 4, 3],
-        vec![3, 3, 3]
-    ];
-    map
+fn ns(num : i64) -> Map {
+    vec![vec![num; HEIGHT as usize]; WIDTH as usize]
 }
 
 fn update_grain(map: &mut Map, point: Point) {
@@ -29,7 +23,7 @@ fn update_grain(map: &mut Map, point: Point) {
     let right = within_bounds(x + 1, y);
     let upper = within_bounds(x, y + 1);
 
-    map[x as usize][y as usize] = 0;
+    map[x as usize][y as usize] -= 4;
     inc_tile(map, lower);
     inc_tile(map, left);
     inc_tile(map, right);
@@ -86,11 +80,38 @@ fn update_map(map: &mut Map) {
     }
 }
 
+fn add(one: &Map, two: &Map) -> Map {
+    let mut mat = vec![vec![0; WIDTH as usize]; HEIGHT as usize];
+    for x in 0..WIDTH as usize{
+        for y in 0..HEIGHT as usize{
+            mat[x][y] = one[x][y] + two[x][y];
+        }
+    }
+    mat
+}
+
+fn negate(mat: &Map) -> Map {
+    let mut new = vec![vec![0; WIDTH as usize]; HEIGHT as usize];
+    for x in 0..WIDTH as usize {
+        for y in 0..WIDTH as usize {
+            new[x][y] = -mat[x][y];
+        }
+    }
+    new
+}
+
+fn subtract(one: &Map, two: &Map) -> Map {
+    add(&one, &negate(two))
+}
+
+fn identity() -> Map {
+    let mut sixes = ns(6);
+    update_map(&mut sixes);
+    let mut id =  subtract(&ns(6), &mut sixes);
+    update_map(&mut id);
+    id
+}
+
 fn main() {
-    let mut map = make_map();
-
-    print_map(&map);
-
-    update_map(&mut map);
-    print_map(&map);
+    print_map(&identity());
 }
