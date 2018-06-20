@@ -1,5 +1,7 @@
-const WIDTH: i32 = 40;
-const HEIGHT: i32 = 40;
+extern crate image;
+
+const WIDTH: i32 = 100;
+const HEIGHT: i32 = 100;
 const MAX_GRAINS: i64 = 3;
 
 type Map = Vec<Vec<i64>>;
@@ -112,6 +114,19 @@ fn identity() -> Map {
     id
 }
 
+fn image(mat: &Map) {
+    let mut imgbuf = image::GrayImage::new(WIDTH as u32, HEIGHT as u32);
+
+    for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
+        let color = mat[x as usize][y as usize] * 60;
+        *pixel = image::Luma([color as u8]);
+    }
+
+    imgbuf.save("sandpile.png").unwrap();
+}
+
 fn main() {
-    print_map(&identity());
+    let id = identity();
+    image(&id);
+    print_map(&id);
 }
