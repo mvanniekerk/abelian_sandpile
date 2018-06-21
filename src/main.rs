@@ -1,15 +1,29 @@
 extern crate image;
 
-const WIDTH: i32 = 100;
-const HEIGHT: i32 = 100;
-const MAX_GRAINS: i64 = 3;
+use std::collections::HashMap;
+use std::collections::hash_map::RandomState;
 
-type Map = Vec<Vec<i64>>;
+const WIDTH: i32 = 200;
+const HEIGHT: i32 = 200;
+const MAX_GRAINS: i32 = 3;
+
+type Map = Vec<Vec<i32>>;
 
 struct Point(i32, i32);
 
-fn ns(num : i64) -> Map {
+fn ns(num : i32) -> Map {
     vec![vec![num; HEIGHT as usize]; WIDTH as usize]
+}
+
+fn colormap() -> HashMap<i32, [u8; 3], RandomState> {
+    let mut map = HashMap::new();
+
+    map.insert(2, [255, 150, 108]);
+    map.insert(1, [108, 213, 255]);
+    map.insert(0, [201, 108, 255]);
+    map.insert(3, [255, 228, 108]);
+
+    map
 }
 
 fn update_grain(map: &mut Map, point: Point) {
@@ -114,12 +128,15 @@ fn identity() -> Map {
     id
 }
 
-fn image(mat: &Map) {
-    let mut imgbuf = image::GrayImage::new(WIDTH as u32, HEIGHT as u32);
+fn image(mat: &Map, colormap: &HashMap<i32, [u8; 3], RandomState>) {
+    let mut imgbuf = image::ImageBuffer::new(WIDTH as u32, HEIGHT as u32);
 
     for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
-        let color = mat[x as usize][y as usize] * 60;
-        *pixel = image::Luma([color as u8]);
+        let color = colormap.get(&mat[x as usize][y as usize]);
+        match color {
+            None => return,
+            Some(color) => *pixel = image::Rgb(*color),
+        }
     }
 
     imgbuf.save("sandpile.png").unwrap();
@@ -127,6 +144,7 @@ fn image(mat: &Map) {
 
 fn main() {
     let id = identity();
-    image(&id);
+    let color_map = colormap();
+    image(&id, &color_map);
     print_map(&id);
 }
