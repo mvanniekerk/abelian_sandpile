@@ -2,6 +2,7 @@ extern crate image;
 
 use std::collections::HashMap;
 use std::collections::hash_map::RandomState;
+use std::fs::create_dir_all;
 
 const WIDTH: i32 = 800;
 const HEIGHT: i32 = 800;
@@ -11,7 +12,7 @@ type Map = Vec<Vec<i32>>;
 
 struct Point(i32, i32);
 
-fn ns(num : i32) -> Map {
+fn ns(num: i32) -> Map {
     vec![vec![num; HEIGHT as usize]; WIDTH as usize]
 }
 
@@ -105,8 +106,8 @@ fn drop_in_middle(map: &mut Map, grains: i32) {
 
 fn add(one: &Map, two: &Map) -> Map {
     let mut mat = vec![vec![0; WIDTH as usize]; HEIGHT as usize];
-    for x in 0..WIDTH as usize{
-        for y in 0..HEIGHT as usize{
+    for x in 0..WIDTH as usize {
+        for y in 0..HEIGHT as usize {
             mat[x][y] = one[x][y] + two[x][y];
         }
     }
@@ -130,12 +131,12 @@ fn subtract(one: &Map, two: &Map) -> Map {
 fn identity() -> Map {
     let mut sixes = ns(6);
     update_map(&mut sixes);
-    let mut id =  subtract(&ns(6), &mut sixes);
+    let mut id = subtract(&ns(6), &mut sixes);
     update_map(&mut id);
     id
 }
 
-fn image(mat: &Map, colormap: &HashMap<i32, [u8; 3], RandomState>) {
+fn image(mat: &Map, colormap: &HashMap<i32, [u8; 3], RandomState>, name: String) {
     let mut imgbuf = image::ImageBuffer::new(WIDTH as u32, HEIGHT as u32);
 
     for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
@@ -145,13 +146,26 @@ fn image(mat: &Map, colormap: &HashMap<i32, [u8; 3], RandomState>) {
             Some(color) => *pixel = image::Rgb(*color),
         }
     }
+    imgbuf.save(name).unwrap();
+}
 
-    imgbuf.save("sandpile.png").unwrap();
+fn drop_multiple(grains: i32, num_images: i32, directory: &str) {
+    let mut mat = ns(0);
+    let grains_per_image = grains / num_images;
+    let color_map = colormap();
+
+    create_dir_all(directory);
+    let name = format!("{}/{:03}.png", directory, 0);
+    image(&mat, &color_map, name);
+
+    for current_image in 1..(num_images + 1) {
+        let name = format!("{}/{:03}.png", directory, current_image);
+        drop_in_middle(&mut mat, grains_per_image);
+        update_map(&mut mat);
+        image(&mat, &color_map, name);
+    }
 }
 
 fn main() {
-    let mut mat = ns(0);
-    drop_in_middle(&mut mat, i32::pow(2, 20));
-    update_map(&mut mat);
-    image(&mat, &color_map());
+    drop_multiple(i32::pow(2, 20), 360, "series");
 }
