@@ -3,8 +3,8 @@ extern crate image;
 use std::collections::HashMap;
 use std::collections::hash_map::RandomState;
 
-const WIDTH: i32 = 200;
-const HEIGHT: i32 = 200;
+const WIDTH: i32 = 800;
+const HEIGHT: i32 = 800;
 const MAX_GRAINS: i32 = 3;
 
 type Map = Vec<Vec<i32>>;
@@ -96,6 +96,13 @@ fn update_map(map: &mut Map) {
     }
 }
 
+fn drop_in_middle(map: &mut Map, grains: i32) {
+    let mid_x = WIDTH / 2;
+    let mid_y = HEIGHT / 2;
+
+    map[mid_x as usize][mid_y as usize] += grains;
+}
+
 fn add(one: &Map, two: &Map) -> Map {
     let mut mat = vec![vec![0; WIDTH as usize]; HEIGHT as usize];
     for x in 0..WIDTH as usize{
@@ -143,8 +150,8 @@ fn image(mat: &Map, colormap: &HashMap<i32, [u8; 3], RandomState>) {
 }
 
 fn main() {
-    let id = identity();
-    let color_map = colormap();
-    image(&id, &color_map);
-    print_map(&id);
+    let mut mat = ns(0);
+    drop_in_middle(&mut mat, i32::pow(2, 20));
+    update_map(&mut mat);
+    image(&mat, &color_map());
 }
