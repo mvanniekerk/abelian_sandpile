@@ -167,5 +167,5 @@ fn drop_multiple(grains: i32, num_images: i32, directory: &str) {
 }
 
 fn main() {
-    drop_multiple(i32::pow(2, 20), 360, "series");
+    drop_multiple(i32::pow(2, 10), 2, "series");
 }
